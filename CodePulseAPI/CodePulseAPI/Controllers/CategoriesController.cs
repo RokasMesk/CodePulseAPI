@@ -1,6 +1,7 @@
 ﻿using CodePulseAPI.Data;
 using CodePulseAPI.Models.Domain;
 using CodePulseAPI.Models.DTO;
+using CodePulseAPI.Repositories.Implementation;
 using CodePulseAPI.Repositories.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -56,6 +57,66 @@ namespace CodePulseAPI.Controllers
             }
             return Ok(response);
         }
-
+        // GET: https://localhost:7250/api/Categories/{id}
+        [HttpGet]
+        [Route("{id:Guid}")]
+        public async Task<IActionResult> GetCategoryById([FromRoute] Guid id)
+        {
+            var category = await _categoryRepository.GetById(id);
+            if (category == null)
+            {
+                return NotFound();
+            }
+            var response = new CategoryDTO
+            {
+                Id = category.Id,
+                Name = category.Name,
+                UrlHandle = category.UrlHandle
+            };
+            return Ok(response);
+        }
+        // PUT: https://localhost:7250/api/Categories/{id}
+        [HttpPut]
+        [Route("{id:Guid}")]
+        public async Task<IActionResult> EditCategory([FromRoute] Guid id, UpdateCategoryRequestDto request)
+        {
+            // Convert DTO to domain Model
+            var category = new Category
+            {
+                Id = id,
+                Name = request.Name,
+                UrlHandle = request.UrlHandle
+            };
+            category = await _categoryRepository.UpdateAsync(category);
+            if (category == null)
+            {
+                return NotFound();
+            }
+            var response = new CategoryDTO
+            {
+                Id = category.Id,
+                Name = category.Name,
+                UrlHandle = category.UrlHandle
+            };
+            return Ok(); 
+        }
+        // Delete: https://localhost:7250/api/Categories/{id}
+        [HttpDelete]
+        [Route("{id:Guid}")]
+        public async Task<IActionResult> DeleteCategory([FromRoute] Guid id)
+        {
+           var deletedCategory =  await _categoryRepository.DeleteAsync(id);
+            if (deletedCategory is null)
+            {
+                return NotFound();
+            }
+            var response = new CategoryDTO
+            {
+                Id = deletedCategory.Id,
+                Name = deletedCategory.Name,
+                UrlHandle = deletedCategory.UrlHandle
+            };
+            return Ok(response);
+        }
     }
 }
