@@ -34,7 +34,7 @@ namespace CodePulseAPI.Controllers
                 UrlHandle = request.UrlHandle,
                 Categories = new List<Category>()
             };
-            foreach(var categoryGuid in request.Categories)
+            foreach (var categoryGuid in request.Categories)
             {
                 var existingCategory = await _categoryRepository.GetById(categoryGuid);
                 if (existingCategory is not null)
@@ -66,7 +66,7 @@ namespace CodePulseAPI.Controllers
         }
         // GET: {apiBaseUrl}/api/blogposts
         [HttpGet]
-        public async  Task<IActionResult> GetAllBlogPosts()
+        public async Task<IActionResult> GetAllBlogPosts()
         {
             var blogPosts = await _blogPostRepostiory.GetAllAsync();
             // convert domain model to DTO
@@ -98,9 +98,40 @@ namespace CodePulseAPI.Controllers
         // GET: {apiBaseUrl}/api/blogposts/{id}
         [HttpGet]
         [Route("{id:Guid}")]
-        public async Task<IActionResult> GetBlogPostById([FromRoute]Guid id)
+        public async Task<IActionResult> GetBlogPostById([FromRoute] Guid id)
         {
             var blogPost = await _blogPostRepostiory.GetByIdAsync(id);
+            if (blogPost == null)
+            {
+                return NotFound();
+            }
+            var response = new BlogPostDTO
+            {
+                Id = blogPost.Id,
+                Author = blogPost.Author,
+                Content = blogPost.Content,
+                PublishedDate = blogPost.PublishedDate,
+                ShortDescription = blogPost.ShortDescription,
+                IsVisible = blogPost.IsVisible,
+                FeaturedImageUrl = blogPost.FeaturedImageUrl,
+                Title = blogPost.Title,
+                UrlHandle = blogPost.UrlHandle,
+                Categories = blogPost.Categories.Select(x => new CategoryDTO
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    UrlHandle = x.UrlHandle
+                }).ToList()
+            };
+            return Ok(response);
+        }
+        // GET: {apiBaseUrl}/api/blogPosts/{urlHandle}
+        [HttpGet]
+        [Route("{urlHandle}")]
+        public async Task<IActionResult> GetBlogPostByUrlHandle([FromRoute] string urlHandle)
+        {
+            // Get blogPost details from repo
+            var blogPost = await _blogPostRepostiory.GetBlogByUrlHandleAsync(urlHandle);
             if (blogPost == null)
             {
                 return NotFound();
